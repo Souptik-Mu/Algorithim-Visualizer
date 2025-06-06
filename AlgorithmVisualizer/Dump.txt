@@ -1,0 +1,237 @@
+#include "Sorting.h"
+
+void Sorting::Swap(int ia, int ib)
+{
+	short temp;
+	temp = arr[ia];
+	arr[ia] = arr[ib];
+	arr[ib] = temp;
+}
+
+void Sorting::Init(Display* Parent, short* Arr, short N)
+{
+	this->drw = Parent;
+	this->arr = Arr;
+	this->n = N;
+}
+
+Sorting::Sorting()
+{
+}
+
+Sorting::~Sorting()
+{
+	//delete[] arr;
+	//delete drw;
+}
+
+
+void Sorting::Bubble()
+{
+	for (short i = 0; i < n-1; i++)
+	{
+		for (short j = 0; j < n - i - 1; j++)
+		{
+			//drw->DrawArr(arr, n,false, j, j+1);
+			wxYield();
+			if (arr[j] > arr[j + 1])
+			{
+				Swap(j, j+1);
+				drw->DrawArr(arr, n, false, j, j+1,i);
+			}
+		}
+	}
+	drw->DrawArr(arr, n,true);
+}
+
+void Sorting::Selection()
+{
+	for (short i = 0; i < n - 1; i++)
+	{
+		short m = i;
+		for (short j = i + 1; j < n; j++)
+		{
+			wxYield();
+			if (arr[j] < arr[m])	m = j;
+			drw->DrawArr(arr, n, false, -1 , i , m);
+		}
+		if (m != i)
+			Swap(m, i);
+	}
+	drw->DrawArr(arr, n, true);
+}
+
+void Sorting::Insertion()
+{
+	for (short i = 1; i < n; i++) {
+		short temp = arr[i];
+		short j = i - 1;
+		for(; j >= 0 && temp <= arr[j];j--) 
+		{
+			wxYield();
+			arr[j + 1] = arr[j];
+			drw->DrawArr(arr, n, false, i, j, temp);
+		}
+		arr[j + 1] = temp;
+	}
+	drw->DrawArr(arr, n, true);
+}
+
+void Sorting::Shell()
+{
+	for (int gap = n / 2; gap > 0; gap /= 2)
+	{
+		for (int i = gap; i < n; i += 1)
+		{
+			int j,temp = arr[i];
+			for (j = i; j >= gap && arr[j - gap] > temp; j -= gap)
+			{
+				wxYield();
+				arr[j] = arr[j - gap];
+				drw->DrawArr(arr, n, false, i, j, j-gap);
+			}	
+			arr[j] = temp;
+		}
+	}
+	drw->DrawArr(arr, n, true);
+}
+
+void Sorting::Merge()
+{
+	mrgsrt(arr, 0, n-1);
+	drw->DrawArr(arr, n, true);
+}
+
+void Sorting::Quick()
+{
+	Qk(arr, 0, n-1);
+	drw->DrawArr(arr, n, true);
+}
+
+void Sorting::Heap()
+{
+	heapSort(arr, n);
+	drw->DrawArr(arr, n, true);
+}
+
+void Sorting::Radix()
+{
+	radixsort(arr, n);
+	drw->DrawArr(arr, n, true);
+}
+
+
+void Sorting::mrg(short* arr, int l, int m, int u)
+{
+	int L = m + 1;
+
+	if (arr[m] <= arr[L]) {
+		return;
+	}
+	while (l <= m && L <= u)
+	{
+		if (arr[l] <= arr[L])	l++;
+		else 
+		{
+			short value = arr[L];
+			for (int k = L; k != l; k--)
+			{
+				wxYield();
+				arr[k] = arr[k - 1];
+				drw->DrawArr(arr, n, false, l, L, k);
+			}
+			arr[l] = value;
+
+			l++; m++; L++;
+		}
+	}
+}
+void Sorting::mrgsrt(short* arr, int l, int u)
+{
+	if (l < u)
+	{
+		int m = l + (u - l) / 2;
+		mrgsrt(arr, l, m);
+		mrgsrt(arr, m + 1, u);
+		mrg(arr, l, m, u);
+	}
+}
+
+int Sorting::Partition(short* arr, int l, int r)
+{
+	int pivot = l;
+	while (l < r) {
+		if (arr[l] > arr[r]) 
+		{
+			wxYield();
+			Swap(l, r);
+			pivot = (pivot == l) ? r : l;
+			drw->DrawArr(arr, n, false, l, r, pivot);
+		}
+		else
+			(pivot == l) ? r-- : l++;
+	}return pivot;
+}
+void Sorting::Qk(short* arr, int L, int R)
+{
+	if (L < R) {
+		int P = Partition(arr, L, R);
+		Qk(arr, L, P - 1);
+		Qk(arr, P + 1, R);
+	}
+}
+
+void Sorting::heapify(short* arr, int N, int i)
+{
+	int largest = i;
+	int left = 2 * i + 1;
+	int right = 2 * i + 2;
+	wxYield();
+	if (left < N && arr[left] > arr[largest])
+		largest = left;
+	if (right < N && arr[right] > arr[largest])
+		largest = right;
+	drw->DrawArr(arr, n, false, left, right, largest);
+	if (largest != i)
+	{
+		Swap(i, largest);
+		heapify(arr, N, largest);
+	}
+}
+void Sorting::heapSort(short* arr, int N)
+{
+	for (int i = N / 2 - 1; i >= 0; i--)
+		heapify(arr, N, i);
+	for (int i = N - 1; i >= 0; i--) // main loop
+	{
+		Swap(0, i);
+		heapify(arr, i, 0);
+	}
+}
+void Sorting::countSort(short* arr, int n, int exp)
+{
+	short* output = new short[n];
+	int i, count[10] = { 0 };
+	for (i = 0; i < n; i++)
+		count[(arr[i] / exp) % 10]++;
+	for (i = 1; i < 10; i++)
+		count[i] += count[i - 1];
+	for (i = n - 1; i >= 0; i--)
+	{
+		wxYield();
+		output[count[(arr[i] / exp) % 10] - 1] = arr[i];
+		count[(arr[i] / exp) % 10]--;
+		drw->DrawArr(arr, n, false, i);
+	}
+	for (i = 0; i < n; i++)
+		arr[i] = output[i];
+}
+void Sorting::radixsort(short* arr, int n)
+{
+	int m = arr[0];
+	for (int i = 1; i < n; i++)
+		if (arr[i] > m)
+			m = arr[i];
+	for (int exp = 1; m / exp > 0; exp *= 10) // exp ~~ i (main lop)
+		countSort(arr, n, exp);
+}
